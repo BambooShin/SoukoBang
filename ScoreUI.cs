@@ -26,6 +26,7 @@ public class ScoreUI : MonoBehaviour
         _gameController = GetComponent<GameController>();
         this._gameController = FindObjectOfType<GameController>(); // インスタンス化
         _gameController.PropertyMoveCount = _gameController.
+            //FUCK
     }
 
     /// <summary>  
