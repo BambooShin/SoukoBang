@@ -15,6 +15,8 @@ public class ScoreUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _moveCounterText;
     //GameControllerクラスを定義
     private GameController _gameController;
+    // ランキングをゲームスタート時に起動した際の可否
+    private bool _isRankingOpen = false;
     #endregion
 
     #region メソッド  
@@ -23,10 +25,9 @@ public class ScoreUI : MonoBehaviour
     /// </summary>  
     private void Awake() {
         // コンポーネント取得
-        _gameController = GetComponent<GameController>();
-        this._gameController = FindObjectOfType<GameController>(); // インスタンス化
-        _gameController.PropertyMoveCount = _gameController.
-            //FUCK
+        _gameController = GetComponent<GameController>(); 
+        // インスタンス化
+        this._gameController = FindObjectOfType<GameController>();
     }
 
     /// <summary>  
@@ -34,8 +35,11 @@ public class ScoreUI : MonoBehaviour
     /// </summary>  
     void Update ()
      {
-        //手数を表示
-        _moveCounterText.text = "手数:" + _gameController.PropertyMoveCount;
+        if (!_isRankingOpen) {
+            //手数を表示
+            _moveCounterText.text = "手数:" + _gameController.PropertyMoveCount;
+            return;
+        }
     }
   
     #endregion

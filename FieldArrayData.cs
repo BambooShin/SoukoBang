@@ -2,15 +2,18 @@
 // FieldArrayData.cs  
 // 盤面についてと移動の可否
 // 作成日:  20231024
-// 作成者:  MasterM・竹内
+// 作成者:  竹内
 // ---------------------------------------------------------  
+// 更新内容
+// 20231130
+//・GameControllerスクリプトのキーの取得をプロパティで座標を渡す仕様に変更
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class FieldArrayData : MonoBehaviour {
-    #region 変数（変更箇所あり）
+    #region 変数
 
     // タグリストの名前に紐づく番号
     private const int NO_BLOCK = 0;
@@ -75,12 +78,11 @@ public class FieldArrayData : MonoBehaviour {
     private int _targetClearCount = 0;
     // ターゲットの最大数
     private int _targetMaxCount = 0;
-
-    #region　変更箇所
     //GameControllerに持っていくプレイヤー行動可否フラグ(移動できるときに切り替える)
-    public static bool _isPlayerMoveCheck;
+    private bool _isPlayerMoveCheck;
+
     #endregion
-    #endregion
+
     #region プロパティ
     /// <summary>
     /// プレイヤーの位置情報
@@ -88,7 +90,17 @@ public class FieldArrayData : MonoBehaviour {
     public Vector2 PlayerPosition {
         get; set;
     }
+    /// <summary>
+    /// プレイヤーの行動可否の受け渡し
+    /// </summary>
+    public bool IsPlayerMoveCheck {
+        get => _isPlayerMoveCheck;
+        set => _isPlayerMoveCheck = value;
+    }
+
+
     #endregion
+
     #region メソッド
     /// <summary>
     /// fieldRootObjectの配下にあるオブジェクトのタグを読み取り
@@ -158,6 +170,13 @@ public class FieldArrayData : MonoBehaviour {
         ImageToArray();
     }
     private void Update() {
+        if (IsPlayerMoveCheck) {
+            Debug.Log("true");
+            //UnityEditor.EditorApplication.isPaused = true;
+        } else {
+            Debug.Log("false");
+        }
+
         if (Input.GetKeyDown(KeyCode.H)) {
             // 配列を出力するテスト
             print("Field------------------------------------------");
@@ -294,12 +313,18 @@ public class FieldArrayData : MonoBehaviour {
         // プレイヤーの移動先がターゲットの時移動する
         if (_fieldData[nextRow, nextCol] == NO_BLOCK ||
         _fieldData[nextRow, nextCol] == TARGET) {
-            _isPlayerMoveCheck = true;
+            IsPlayerMoveCheck = true;
             return true;
         }
         if (_fieldData[nextRow, nextCol] == STATIC_BLOCK || _fieldData[preRow, preCol] == TARGET) {
-            _isPlayerMoveCheck = false;
+            IsPlayerMoveCheck = false;
         }
+        /*
+        if (_fieldData[nextRow, nextCol] == STATIC_BLOCK || _fieldData[preRow, preCol] == TARGET) {
+            _isPlayerMoveCheck = false;
+            return false;
+        }
+        */
         return false;
     }
     /// <summary>
@@ -321,6 +346,7 @@ public class FieldArrayData : MonoBehaviour {
     /// <param name="nextRow">移動後縦情報</param>
     /// <param name="nextCol">移動後横情報</param>
     public void PlayerMove(int preRow, int preCol, int nextRow, int nextCol) {
+
         // 移動可能かチェックする
         if (PlayerMoveCheck(preRow, preCol, nextRow, nextCol)) {
             // 移動が可能な場合移動する

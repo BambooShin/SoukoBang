@@ -6,7 +6,8 @@
 // ---------------------------------------------------------  
 // 更新内容
 // 20231130
-// ・Vector3Intを取り入れる予定だったが(int)を知り、軽さの改善につながることから実装。
+// ・Mathf.floorを変更し(int)を実装。
+// ・値の受け渡しをプロパティにて実装
 
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -14,9 +15,9 @@ using UnityEngine.SceneManagement;
 public class GameController : MonoBehaviour {
 
 
-    #region 変数（変更箇所あり）  
+    #region 変数
     // フィールド操作クラスの定義
-    static FieldArrayData _fieldArrayData;
+     static FieldArrayData _fieldArrayData;
     /// <summary>
     /// ゲームの状態管理用構造体
     /// START : ゲーム開始前処理
@@ -65,10 +66,10 @@ public class GameController : MonoBehaviour {
 
     // キーパットの入力状態
     private bool _isInputState;
-
-    #region 変更箇所
+    //行動した回数の最大値の定数
+    private const int CONST_MOVECOUNTMAX = 99999;
     //行動した回数
-    public static int _moveCount;
+    public static int _moveCount = CONST_MOVECOUNTMAX;
     //行動した回数の最大値
     private int _moveCountMax;
     //タイトルシーン名
@@ -76,20 +77,23 @@ public class GameController : MonoBehaviour {
     //ゲームクリアシーン名
     private string _gameClearSceneName;
     #endregion
-    #endregion
-
+    /// <summary>
+    /// 手数の受け渡し
+    /// </summary>
     public int PropertyMoveCount
    {
-        // 通称ゲッター。呼び出した側がscoreを参照できる
+        //呼び出した側がscoreを参照できる
         get {
             return _moveCount;
         }
-        // 通称セッター。value はセットする側の数字などを反映する
+        //value はセットする側の数字などを反映する
         set {
             _moveCount = value;
         } 
     }
-
+    /// <summary>
+    /// 手数の最大値の受け渡し
+    /// </summary>
     public int PropertyMoveCountMax {
         get {
             return _moveCountMax;
@@ -99,7 +103,7 @@ public class GameController : MonoBehaviour {
         }
     }
 
-    #region メソッド(変更箇所あり)  
+    #region メソッド
 
     /// <summary>  
     /// 初期化処理  
@@ -107,18 +111,16 @@ public class GameController : MonoBehaviour {
     private void Awake() {
         // コンポーネント取得
         _fieldArrayData = GetComponent<FieldArrayData>();
-
-        #region 変更箇所
         //キーパッドの入力状態
         _isInputState = false;
         //手数初期化
-        _moveCount = 0;
+        _moveCount =　0;
         //手数最大値
-        _moveCountMax = 99;
+        _moveCountMax = CONST_MOVECOUNTMAX;
         //シーン名
         _titleSceneName = "TitleScene";
         _gameClearSceneName = "GameClearScene";
-        #endregion
+        
     }
 
     /// <summary>  
@@ -179,29 +181,22 @@ public class GameController : MonoBehaviour {
                 if ((horizontalInput + verticalInput) == 0) {
                     _isInputState = false;
                 }
+
                 // クリア判定
                 if (_fieldArrayData.GetGameClearJudgment()) {
                     _gameState = GameState.END;
                 }
 
-                #region　変更箇所
-
                 //移動可能な場所にプレイヤーが移動すると手数が更新される
-                if ((Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.LeftArrow)
-                    || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.DownArrow)
-                    || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.A)
-                    || Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.D)) && FieldArrayData._isPlayerMoveCheck == true) {
+                if (_fieldArrayData.IsPlayerMoveCheck == true && Input.anyKeyDown ) {
+
+                    //手数最大値を超えると終了
+                    SceneChanger();
 
                     //手数のカウント
                     _moveCount++;
 
-                    if (_moveCount > _moveCountMax) {
-                        SceneManager.LoadScene(_titleSceneName);
-                    }
-
                 }
-                #endregion
-
 
                 break;
             case GameState.BLOCK_MOVE:
@@ -210,6 +205,17 @@ public class GameController : MonoBehaviour {
                 //クリア画面に遷移する
                 SceneManager.LoadScene(_gameClearSceneName);
                 break;
+        }
+        
+        Debug.Log("state" + _isInputState);
+    }
+    
+    private void SceneChanger()
+    {
+        //手数最大値を超えると終了
+        if (_moveCount > _moveCountMax)
+        {
+            SceneManager.LoadScene(_titleSceneName);
         }
     }
     #endregion
